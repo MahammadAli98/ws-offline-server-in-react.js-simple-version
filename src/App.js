@@ -1,41 +1,29 @@
 import { useEffect, useState } from 'react'
 
-const client = new WebSocket('ws://localhost:5000/ws/chat/')
+const ws = new WebSocket(`ws://${window.location.hostname}:5000`)
 
 export default function App() {
-
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
-
-
-  const sntbtn = (msg) => {
-    client.send(JSON.stringify({ type: 'message', message: msg }))
+  
+  const send = (msg) => {
+    ws.send(JSON.stringify({ type: 'message', message: msg }))
     setMessages([...messages, msg])
-    console.log('sent messages: ' + messages)
     setMessage('')
+    console.log('sent messages: ' + [...messages, msg])
   }
-
+  
   useEffect(() => {
-    client.onopen = () => {
-      console.log('WebSocket Client Connected' + client.readyState)
-    }
-    client.onmessage = (message) => {
-      const dataFromServer = JSON.stringify(message.data)
-      console.log('got reply! ', dataFromServer)
-    }
-  })
+    ws.onopen = () => console.log('WebSocket Client Connected' + ws.readyState)
+    ws.onmessage = (message) => console.log('got reply! ', message.data)
+  }, [])
 
 
   return (
     <div className="App">
       <h1>React App</h1>
-      <input type="text"
-        placeholder="Enter your message"
-        name="message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      <button onClick={() => sntbtn(message)}>sent message</button>
+      <input type="text" placeholder="Enter your message" name="message" value={message} onChange={(e) => setMessage(e.target.value)} />
+      <button onClick={() => send(message)}>sent message</button>
     </div>
   )
 }
